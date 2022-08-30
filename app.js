@@ -2,12 +2,17 @@ const express = require('express')
 const bodyParser = require('body-parser')
 
 const placesRoutes = require('./routes/places-routes')
+const HttpError = require('./models/http-error')
 
 const app = express()
 
 app.use(bodyParser.json()) // this is will parse any incoming request body and convert any json data in there into regular javascript data structures like objects and arrays
 app.use('/api/places', placesRoutes)
 
+app.use((req, res, next) => {
+  const error = new HttpError('Could not find the page you are looking for')
+  throw error
+})
 
 app.use((error, req, res, next) => {  // if we provide a 4 params function, express will know this is a special middleware function and treat it like a error handling middleware
                                       // this function will execute if any middleware function before it yields an error
