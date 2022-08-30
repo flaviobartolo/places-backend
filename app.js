@@ -5,6 +5,7 @@ const placesRoutes = require('./routes/places-routes')
 
 const app = express()
 
+app.use(bodyParser.json()) // this is will parse any incoming request body and convert any json data in there into regular javascript data structures like objects and arrays
 app.use('/api/places', placesRoutes)
 
 
