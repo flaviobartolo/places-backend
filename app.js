@@ -9,9 +9,9 @@ const app = express()
 app.use(bodyParser.json()) // this is will parse any incoming request body and convert any json data in there into regular javascript data structures like objects and arrays
 app.use('/api/places', placesRoutes)
 
-app.use((req, res, next) => {
+app.use((req, res, next) => { // catching unknown routes
   const error = new HttpError('Could not find the page you are looking for')
-  throw error
+  throw error // we use throw error instead of next(error) because its going to be a synchronous call since its an unknown route
 })
 
 app.use((error, req, res, next) => {  // if we provide a 4 params function, express will know this is a special middleware function and treat it like a error handling middleware
