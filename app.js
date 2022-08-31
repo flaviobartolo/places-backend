@@ -22,7 +22,7 @@ app.use((error, req, res, next) => {  // if we provide a 4 params function, expr
   if (res.headerSent) { // we check if a response has already be sent and if thats the case we return and forward the error 
     return next(error)
   }
-  
+  console.log('entrou error middlware')
   res.status(error.code || 500) // if theres no error code set we default it to 500
   res.json({message: error.message || 'An unexpected error occured.'})
 

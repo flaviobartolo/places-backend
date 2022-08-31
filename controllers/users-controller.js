@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid')
+const { validationResult } = require('express-validator')
 
 const HttpError = require('../models/http-error')
 
@@ -29,12 +30,17 @@ const getAllUsers = (req, res, next) => {
 }
 
 const createUser = (req, res, next) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(422).json({message: 'Invalid inputs passed please check your data', errors: errors.array()})
+  }
+
   const {name, email, password, address, picture} = req.body
 
   const checkEmailExists = DUMMY_USERS.find((u) => u.email === email)
 
   if (checkEmailExists) {
-    return next( new HttpError('that email is already registered.', 422))
+    return next(new HttpError('that email is already registered.', 422))
   }
 
   const newUser = {
@@ -50,6 +56,11 @@ const createUser = (req, res, next) => {
 }
 
 const loginUser = (req, res, next) => {
+  const errors = validationResult(req)
+  if(!errors.isEmpty()) {
+    return res.status(422).json({message: 'Invalid inputs passed please check your data', errors: errors.array()})
+  }
+
   const {email, password} = req.body
   const user = DUMMY_USERS.find((u) => u.email === email && u.password === password)
   if (!user) {

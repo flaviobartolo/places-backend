@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid')
+const { validationResult } = require('express-validator')
 
 const HttpError = require('../models/http-error')
 
@@ -52,8 +53,13 @@ const getPlacesByUser = (req, res, next) => {
 }
 
 const createPlace = (req, res, next) => {
+  const errors = validationResult(req)
+  if(!errors.isEmpty()) {
+    return res.status(422).json({message:'Invalid inputs passed please check your data', errors: errors.array()}) // errors.array() returns a array of fields that are not validated
+  }
+  
   const {title, description, coordinates, address, creator} = req.body // this is a shortcut for this: const title = req.body.title; const description = req.body.description
-  console.log(req.body)
+  
   const createdPlace = {
     id: uuidv4(),
     title,
@@ -70,6 +76,11 @@ const createPlace = (req, res, next) => {
 }
 
 const updatePlace = (req, res, next) => {
+  const errors = validationResult(req)
+  if(!errors.isEmpty()) {
+    return res.status(422).json({message:'Invalid inputs passed please check your data', errors: errors.array()})
+  }
+
   const placeId = req.params.pid
   const {title, description} = req.body
   const placeIndex = DUMMY_PLACES.findIndex((p) => p.id === placeId)
