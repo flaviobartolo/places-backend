@@ -8,7 +8,7 @@ router.route('/:pid')
   .get(placesControllers.getPlaceById)
   .patch(placesControllers.updatePlace)
   .delete(placesControllers.deletePlace)
-router.get('/user/:uid', placesControllers.getPlaceByUser)
+router.get('/user/:uid', placesControllers.getPlacesByUser)
 router.post('/', placesControllers.createPlace)
 
 module.exports = router
