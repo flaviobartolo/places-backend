@@ -9,7 +9,7 @@ const VALIDATORS = {
               .isEmpty()
               .withMessage('email is required')
               .bail() // if email is empty, the following will not run
-              .normalizeEmail()
+              .normalizeEmail() // converts Test@test.com to test@test.com
               .isEmail()
               .withMessage('email not valid'),
   password: check('password')
