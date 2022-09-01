@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require('uuid')
 const { validationResult } = require('express-validator')
 
 const HttpError = require('../models/http-error')
+const getCoordsForAddress = require('../util/location')
 
 let DUMMY_PLACES = [{
   id: 'p1',
@@ -52,14 +53,22 @@ const getPlacesByUser = (req, res, next) => {
   res.json({places: userPlaces})
 }
 
-const createPlace = (req, res, next) => {
+const createPlace = async (req, res, next) => {
   const errors = validationResult(req)
   if(!errors.isEmpty()) {
     return res.status(422).json({message:'Invalid inputs passed please check your data', errors: errors.array()}) // errors.array() returns a array of fields that are not validated
   }
   
-  const {title, description, coordinates, address, creator} = req.body // this is a shortcut for this: const title = req.body.title; const description = req.body.description
+  const {title, description, address, creator} = req.body // this is a shortcut for this: const title = req.body.title; const description = req.body.description
   
+  let coordinates // we create a coordinates so coordinates is not just scoped to the try block
+  try{
+    coordinates = await getCoordsForAddress(address)
+  } catch (error) {
+    return next(error)
+  }
+  
+
   const createdPlace = {
     id: uuidv4(),
     title,
