@@ -23,11 +23,22 @@ DUMMY_USERS = [
   }
 ]
 
-const getAllUsers = (req, res, next) => {
-  if(DUMMY_USERS.length === 0){
-    return next(new HttpError('There are no users', 404))
+const getAllUsers = async (req, res, next) => {
+
+  let allUsers
+  try {
+    allUsers = await User.find({}, '-password') // exclude the password from the query 
+  } catch (err) {
+    const error = 'Something went wrong.'
+    return next(new HttpError(error, 500))
   }
-  res.json({users: DUMMY_USERS})
+
+  if(allUsers.length === 0){
+    const error = 'There are no users.'
+    return next(new HttpError(error, 200))
+  }
+
+  res.json({ users: allUsers.map((user) => user.toObject({getters: true})) })
 }
 
 const createUser = async (req, res, next) => {
@@ -69,18 +80,28 @@ const createUser = async (req, res, next) => {
   res.status(201).json({ user: newUser.toObject({getters: true}) })
 }
 
-const loginUser = (req, res, next) => {
+const loginUser = async (req, res, next) => {
   const errors = validationResult(req)
   if(!errors.isEmpty()) {
     return res.status(422).json({message: 'Invalid inputs passed please check your data', errors: errors.array()})
   }
 
   const {email, password} = req.body
-  const user = DUMMY_USERS.find((u) => u.email === email && u.password === password)
-  if (!user) {
-    return next(new HttpError('invalid login credentials', 401))
+
+  let existingUser
+  try {
+    existingUser = await User.findOne({email})
+  } catch (err) {
+    const error = 'login failed, please try again.'
+    return next(new HttpError(error, 500))  
   }
-  res.json({user})
+
+  if (!existingUser || existingUser.password !== password) {
+    const error = 'Invalid login credentials.'
+    return next(new HttpError(error, 401))
+  }
+  
+  res.json({ message: 'Logged in!', user: existingUser.toObject({getters: true}) })
 }
 
 
