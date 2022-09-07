@@ -1,9 +1,11 @@
 const { v4: uuidv4 } = require('uuid')
 const { validationResult } = require('express-validator')
+const mongoose = require('mongoose')
 
 const HttpError = require('../models/http-error')
 const getCoordsForAddress = require('../util/location')
 const Place = require('../models/place')
+const User = require('../models/user')
 
 
 const getPlaceById = async (req, res, next) => {
@@ -70,8 +72,27 @@ const createPlace = async (req, res, next) => {
     creator
   })
 
+  let user
   try {
-    await createdPlace.save()
+    user = await User.findById(creator)
+  } catch (err) {
+    const error = 'Create place failed, please try again'
+    return next(new HttpError(error, 500))
+  }
+
+  if(!user) {
+    const error = new HttpError('We could not find an user for the provided id', 404)
+    return next(error)
+  }
+
+  try {
+    // REMINDER: while in other mongoose operations if you dont have an collection it creates it automatically, here its a diferent case and you need to have all the collections involved in this transaction already created 
+    const sess = await mongoose.startSession() // start a session so we can create a chain of operations "Transactions let you execute multiple operations in isolation and potentially undo all the operations if one of them fails"
+    sess.startTransaction()
+    await createdPlace.save({ session: sess }) // we pass the session into the save method we mongoose knows what session it belongs to incase of an error
+    user.places.push(createdPlace) // the push method on this method is not a standard push but a way of mongoose connect to the user model and add the place ID to the user places (it only adds the ID)
+    await user.save({ session: sess })
+    await sess.commitTransaction() // only at this point the changes are really saved in the DB incase something fails all the changes would be reverted
   } catch (err) {
     console.log(err)
     return next(new HttpError('Creating place failed.', 500))
