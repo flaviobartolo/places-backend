@@ -47,7 +47,7 @@ const createUser = async (req, res, next) => {
     return res.status(422).json({message: 'Invalid inputs passed please check your data', errors: errors.array()})
   }
 
-  const {name, email, password, address, image, places} = req.body
+  const {name, email, password, address, image} = req.body
 
   let existingUser
   try {
@@ -67,7 +67,7 @@ const createUser = async (req, res, next) => {
     email,
     image,
     password,
-    places 
+    places: []
   })
 
   try {

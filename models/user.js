@@ -21,10 +21,11 @@ const userSchema = mongoose.Schema({
     type: String,
     require: true
   },
-  places: {
-    type: String,
-    require: true
-  }
+  places: [{ // we tell mongoose that an user can have multiple places by wrapping the places reference inside an array
+      type: mongoose.Types.ObjectId,
+      ref: 'Place',
+      require: true
+  }]
 })
 
 userSchema.plugin(uniqueValidator)
