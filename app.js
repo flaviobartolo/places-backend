@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const express = require('express')
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
@@ -33,5 +34,12 @@ app.use((error, req, res, next) => {  // if we provide a 4 params function, expr
 
 })
 
-
-app.listen(5000)
+mongoose
+  .connect(process.env.DB_URL)
+  .then(() => {
+    console.log('successfully connected')
+    app.listen(5000)
+  })
+  .catch((err) => {
+    console.log(err)
+  })
