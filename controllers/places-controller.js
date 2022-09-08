@@ -1,4 +1,3 @@
-const { v4: uuidv4 } = require('uuid')
 const { validationResult } = require('express-validator')
 const mongoose = require('mongoose')
 
@@ -6,9 +5,9 @@ const HttpError = require('../models/http-error')
 const getCoordsForAddress = require('../util/location')
 const Place = require('../models/place')
 const User = require('../models/user')
-const user = require('../models/user')
 
 
+// Get a place by Place ID
 const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid
   let place
@@ -30,6 +29,7 @@ const getPlaceById = async (req, res, next) => {
 }
 
 
+// Get places by User ID
 const getPlacesByUser = async (req, res, next) => {
   const userId = req.params.uid
   let userWithPlaces
@@ -48,6 +48,8 @@ const getPlacesByUser = async (req, res, next) => {
   res.json({ places: userWithPlaces.places.map((place) => place.toObject({getters: true})) })
 }
 
+
+// Create a new Place
 const createPlace = async (req, res, next) => {
   const errors = validationResult(req)
 
@@ -102,6 +104,8 @@ const createPlace = async (req, res, next) => {
   res.status(201).json({ place: createdPlace.toObject({getters: true}) })
 }
 
+
+// Update an existing Place
 const updatePlace = async (req, res, next) => {
   const errors = validationResult(req)
   if(!errors.isEmpty()) {
@@ -114,10 +118,8 @@ const updatePlace = async (req, res, next) => {
   let place
   try {
     place = await Place.findById(placeId)
-
     place.title = title || place.title
     place.description = description || place.description
-
     await place.save()
   } catch (err) {
     return next(new HttpError('Something went wrong while feching/updating this place.', 500))
@@ -127,6 +129,8 @@ const updatePlace = async (req, res, next) => {
   res.status(200).json({ place: place.toObject({ getters: true }) })
 }
 
+
+// Delete a Place by its ID
 const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid
 

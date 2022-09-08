@@ -1,28 +1,10 @@
-const { v4: uuidv4 } = require('uuid')
 const { validationResult } = require('express-validator')
 
 const HttpError = require('../models/http-error')
 const User = require('../models/user')
 
-DUMMY_USERS = [
-  {
-    uid: 'u1',
-    name: 'Flávio',
-    email: 'flavio@gmail.com',
-    password: 'test123',
-    address: 'Test Street 101',
-    picture: 'https://png.pngitem.com/pimgs/s/506-5067022_sweet-shap-profile-placeholder-hd-png-download.png'
-  },
-  {
-    uid: 'u1',
-    name: 'Laura',
-    email: 'laura@gmail.com',
-    password: 'test123',
-    address: 'Test Street 102',
-    picture: 'https://jtphealth.com/wp-content/uploads/2021/06/profile-placeholder-female-3.png'
-  }
-]
 
+// Get a user by User ID
 const getAllUsers = async (req, res, next) => {
 
   let allUsers
@@ -41,6 +23,8 @@ const getAllUsers = async (req, res, next) => {
   res.json({ users: allUsers.map((user) => user.toObject({getters: true})) })
 }
 
+
+// Create a new User
 const createUser = async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
@@ -80,6 +64,8 @@ const createUser = async (req, res, next) => {
   res.status(201).json({ user: newUser.toObject({getters: true}) })
 }
 
+
+// Authentication 
 const loginUser = async (req, res, next) => {
   const errors = validationResult(req)
   if(!errors.isEmpty()) {
