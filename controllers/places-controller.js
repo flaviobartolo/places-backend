@@ -6,6 +6,7 @@ const HttpError = require('../models/http-error')
 const getCoordsForAddress = require('../util/location')
 const Place = require('../models/place')
 const User = require('../models/user')
+const user = require('../models/user')
 
 
 const getPlaceById = async (req, res, next) => {
@@ -22,7 +23,7 @@ const getPlaceById = async (req, res, next) => {
 
   if (!place) { // this error will be triggered incase theres no place for the provided valid ID
     const error = new HttpError(`Could not find a place for the provided place id of: ${placeId}`, 404)
-    next(error)
+    return next(error)
   }
 
   res.json({ place: place.toObject({getters: true}) }) // we use getters: true because mongoose return an id property for each document
@@ -99,7 +100,7 @@ const createPlace = async (req, res, next) => {
   }
 
   console.log(createdPlace)
-  res.status(201).json({place: createdPlace})
+  res.status(201).json({ place: createdPlace.toObject({getters: true}) })
 }
 
 const updatePlace = async (req, res, next) => {
@@ -132,10 +133,25 @@ const deletePlace = async (req, res, next) => {
 
   let place
   try {
-    place = await Place.findById(placeId)
-    await place.remove()
+    place = await Place.findById(placeId).populate('creator') // populate() function in mongoose is used for populating the data inside the reference
   } catch (err) {
     return next(new HttpError('Something went wrong, could not fetch/delete this place', 500))
+  } 
+
+  if (!place) {
+    const error = new HttpError('Could not find a place for this ID.', 404)
+    return next(error)
+  }
+
+  try {
+    const sess = await mongoose.startSession()
+    sess.startTransaction()
+    place.creator.places.pull(place)
+    await place.creator.save({session: sess})
+    await place.remove({session: sess})
+    sess.commitTransaction()
+  } catch (err) {
+    return next(new HttpError('Deleting place failed.', 500))
   }
 
   res.status(200).json({message: 'Deleted place.'})
