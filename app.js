@@ -13,6 +13,13 @@ const HttpError = require('./models/http-error')
 const app = express()
 
 app.use(bodyParser.json()) // this is will parse any incoming request body and convert any json data in there into regular javascript data structures like objects and arrays
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-Width, Content-Type, Accept, Authorization')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE')
+})
+
 app.use('/api/places', placesRoutes)
 app.use('/api/users', usersRoutes)
 
