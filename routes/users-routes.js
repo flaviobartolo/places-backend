@@ -2,11 +2,13 @@ const express = require('express')
 
 const usersControllers = require('../controllers/users-controller')
 const USERS_VALIDATORS = require('../validators/users-validators')
+const fileUpload = require('../middleware/file-upload')
 
 const router = express.Router()
 
 router.get('/', usersControllers.getAllUsers)
-router.post('/signup', 
+router.post('/signup',
+  fileUpload.single('image'),
   [
     USERS_VALIDATORS.name,
     USERS_VALIDATORS.email,
