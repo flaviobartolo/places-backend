@@ -51,6 +51,7 @@ const getPlacesByUser = async (req, res, next) => {
 
 // Create a new Place
 const createPlace = async (req, res, next) => {
+  console.log(req.body)
   const errors = validationResult(req)
 
   if(!errors.isEmpty()) {
@@ -70,7 +71,7 @@ const createPlace = async (req, res, next) => {
     description,
     address,
     location: coordinates,
-    image: 'https://imagens-revista-pro.vivadecora.com.br/uploads/2021/01/Empire-State-Building-se-destaca-na-paisagem-de-Nova-York-foto-Pinterest.jpg',
+    image: req.file.path,
     creator
   })
 

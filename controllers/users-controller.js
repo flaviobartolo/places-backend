@@ -49,7 +49,7 @@ const createUser = async (req, res, next) => {
   const newUser = new User({
     name,
     email,
-    image,
+    image: req.file.path,
     password,
     places: []
   })

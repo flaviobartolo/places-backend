@@ -1,6 +1,9 @@
+const fs = require('fs')
+const path = require('path')
+
 const mongoose = require('mongoose')
 const express = require('express')
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser') // in here just to show an alternative
 const dotenv = require('dotenv')
 
 dotenv.config()
@@ -12,9 +15,11 @@ const HttpError = require('./models/http-error')
 
 const app = express()
 
-//app.use(bodyParser.json()) // this is will parse any incoming request body and convert any json data in there into regular javascript data structures like objects and arrays
+//app.use(bodyParser.json()) // this will parse any incoming request body and convert any json data in there into regular javascript data structures like objects and arrays
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
+
+app.use('/uploads/images', express.static(path.join('uploads', 'images')))
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -34,6 +39,12 @@ app.use((req, res, next) => { // catching unknown routes
 app.use((error, req, res, next) => {  // if we provide a 4 params function, express will know this is a special middleware function and treat it like a error handling middleware
                                       // this function will execute if any middleware function before it yields an error
   
+  if (req.file) { // if the request has a file we delete it since this is an error handling middleware
+    fs.unlink(req.file.path, (err) => {
+      console.log(err)
+    })
+  }
+
   if (res.headerSent) { // we check if a response has already be sent and if thats the case we return and forward the error 
     return next(error)
   }
