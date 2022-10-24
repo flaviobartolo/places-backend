@@ -1,8 +1,12 @@
 const { validationResult } = require('express-validator')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
 const HttpError = require('../models/http-error')
 const User = require('../models/user')
 
+const dotenv = require('dotenv')
+dotenv.config()
 
 // Get a user by User ID
 const getAllUsers = async (req, res, next) => {
@@ -46,11 +50,18 @@ const createUser = async (req, res, next) => {
     return next(new HttpError(error, 422))
   }
 
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(password, 12)
+  } catch (error) {
+    return next(new HttpError('Could not create user, please try again', 500))
+  }
+
   const newUser = new User({
     name,
     email,
     image: req.file.path,
-    password,
+    password: hashedPassword,
     places: []
   })
 
@@ -61,7 +72,20 @@ const createUser = async (req, res, next) => {
     return next(new HttpError(error, 500 ))
   }
 
-  res.status(201).json({ user: newUser.toObject({getters: true}) })
+  let token;
+  try {
+    token = jwt.sign(
+      {userId: newUser.id, email: newUser.email}, 
+      process.env.JWT_SECRET, 
+      {expiresIn: '1h'}
+    )
+  } catch (err) {
+    const error = 'Signup failed, please try again.'
+    return next(new HttpError(error, 500 ))
+  }
+
+  res.status(201).json({userId: newUser.id, email: newUser.email, token})
+  //res.status(201).json({ user: newUser.toObject({getters: true}) })
 }
 
 
@@ -82,12 +106,36 @@ const loginUser = async (req, res, next) => {
     return next(new HttpError(error, 500))  
   }
 
-  if (!existingUser || existingUser.password !== password) {
+  if (!existingUser) {
     const error = 'Invalid login credentials.'
     return next(new HttpError(error, 401))
   }
+
+  let isValidPassword = false
+  try {
+    isValidPassword = await bcrypt.compare(password, existingUser.password)
+  } catch (error) {
+    return next(new HttpError('Could not log you in, please check your credentials and try again', 500))
+  }
   
-  res.json({ message: 'Logged in!', user: existingUser.toObject({getters: true}) })
+  if (!isValidPassword) {
+    const error = 'Invalid login credentials.'
+    return next(new HttpError(error, 401))
+  }
+
+  let token;
+  try {
+    token = jwt.sign(
+      {userId: existingUser.id, email: existingUser.email}, 
+      process.env.JWT_SECRET, 
+      {expiresIn: '1h'}
+    )
+  } catch (err) {
+    const error = 'Login failed, please try again.'
+    return next(new HttpError(error, 500 ))
+  }
+
+  res.json({userId: newUser.id, email: newUser.email, token})
 }
 
 
