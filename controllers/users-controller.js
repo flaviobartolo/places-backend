@@ -134,8 +134,8 @@ const loginUser = async (req, res, next) => {
     const error = 'Login failed, please try again.'
     return next(new HttpError(error, 500 ))
   }
-
-  res.json({userId: newUser.id, email: newUser.email, token})
+  console.log('login com sucesso')
+  res.json({userId: existingUser.id, email: existingUser.email, token})
 }
 
 
