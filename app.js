@@ -41,7 +41,7 @@ app.use((error, req, res, next) => {  // if we provide a 4 params function, expr
   
   if (req.file) { // if the request has a file we delete it since this is an error handling middleware
     fs.unlink(req.file.path, (err) => {
-      console.log(err)
+      //console.log(err)
     })
   }
 

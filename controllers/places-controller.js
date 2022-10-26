@@ -53,7 +53,6 @@ const getPlacesByUser = async (req, res, next) => {
 
 // Create a new Place
 const createPlace = async (req, res, next) => {
-  console.log(req.body)
   const errors = validationResult(req)
 
   if(!errors.isEmpty()) {
@@ -61,6 +60,7 @@ const createPlace = async (req, res, next) => {
   }
   
   const {title, description, address, creator} = req.body // this is a shortcut for this: const title = req.body.title; const description = req.body.description
+  console.log(req.body)
   let coordinates // we create a coordinates so coordinates is not just scoped to the try block
   try{
     coordinates = await getCoordsForAddress(address)
@@ -99,7 +99,7 @@ const createPlace = async (req, res, next) => {
     await user.save({ session: sess })
     await sess.commitTransaction() // only at this point the changes are really saved in the DB incase something fails all the changes would be reverted
   } catch (err) {
-    console.log(err)
+    //console.log(err)
     return next(new HttpError('Creating place failed.', 500))
   }
 
@@ -121,13 +121,15 @@ const updatePlace = async (req, res, next) => {
   let place
   try {
     place = await Place.findById(placeId)
+    if(place.creator.toString() !== req.userData.userId) { // we use .toString() on place.creator since place.creator returns an object ID and we are comparing it to a string so we need to convert it with toString()
+      return next(new HttpError('You are not allowed to edit this place', 401))
+    }
     place.title = title || place.title
     place.description = description || place.description
     await place.save()
   } catch (err) {
-    return next(new HttpError('Something went wrong while feching/updating this place.', 500))
+    return next(new HttpError('Something went wrong while fetching/updating this place.', 500))
   }
-
 
   res.status(200).json({ place: place.toObject({ getters: true }) })
 }
@@ -140,6 +142,9 @@ const deletePlace = async (req, res, next) => {
   let place
   try {
     place = await Place.findById(placeId).populate('creator') // populate() function in mongoose is used for populating the data inside the reference
+    if(place.creator.id !== req.userData.userId) {
+      return next(new HttpError('You are not allowed to delete this place', 401))
+    }
   } catch (err) {
     return next(new HttpError('Something went wrong, could not fetch/delete this place', 500))
   } 
