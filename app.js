@@ -56,7 +56,8 @@ app.use((error, req, res, next) => {  // if we provide a 4 params function, expr
 })
 
 mongoose
-  .connect(process.env.DB_URL)
+  .connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@placescluster.m86ycr6.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`)
+  //.connect(process.env.DB_URL) // with .env file
   .then(() => {
     console.log('successfully connected')
     app.listen(5000)
