@@ -60,7 +60,7 @@ mongoose
   //.connect(process.env.DB_URL) // with .env file
   .then(() => {
     console.log('successfully connected')
-    app.listen(5000)
+    app.listen(process.env.PORT || 5000)
   })
   .catch((err) => {
     console.log(err)
