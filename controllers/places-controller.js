@@ -107,7 +107,6 @@ const createPlace = async (req, res, next) => {
   res.status(201).json({ place: createdPlace.toObject({getters: true}) })
 }
 
-
 // Update an existing Place
 const updatePlace = async (req, res, next) => {
   const errors = validationResult(req)
